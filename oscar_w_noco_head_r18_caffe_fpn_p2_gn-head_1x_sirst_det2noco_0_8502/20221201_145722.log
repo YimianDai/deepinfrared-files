@@ -1,0 +1,1826 @@
+2022-12-01 14:57:22,947 - mmdet - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.13 (default, Mar 29 2022, 02:18:16) [GCC 7.5.0]
+CUDA available: True
+GPU 0,1,2,3: GeForce RTX 3090
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.1, V11.1.105
+GCC: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+PyTorch: 1.12.1+cu113
+PyTorch compiling details: PyTorch built with:
+  - GCC 9.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.6.0 (Git Hash 52b5f107dd9cf10910aaa19cb47f3abf9b349815)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.3
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86
+  - CuDNN 8.3.2  (built against CUDA 11.5)
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.3, CUDNN_VERSION=8.3.2, CXX_COMPILER=/opt/rh/devtoolset-9/root/usr/bin/c++, CXX_FLAGS= -fabi-version=11 -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Werror=cast-function-type -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.12.1, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=OFF, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+TorchVision: 0.13.1+cu113
+OpenCV: 4.5.5
+MMCV: 1.7.0
+MMCV Compiler: GCC 9.3
+MMCV CUDA Compiler: 11.3
+MMDetection: 2.25.2+8bcaa7c
+------------------------------------------------------------
+
+2022-12-01 14:57:23,349 - mmdet - INFO - Distributed training: False
+2022-12-01 14:57:23,517 - mmdet - INFO - Config:
+out_inds = [0, 1]
+sirst_version = 'sirstv2'
+depth = 18
+fpn_strides = [4, 8, 16, 32]
+split_cfg = dict(
+    train_split='splits/trainval_full.txt',
+    val_split='splits/test_full.txt',
+    test_split='splits/test_full.txt')
+backbone_cfg = dict(
+    stem_stride=2,
+    max_pooling=True,
+    strides=(1, 2, 2, 2),
+    depths=(2, 2, 2, 2),
+    block='basic',
+    pretrained='open-mmlab://resnet18_v1c')
+neck_cfg = dict(
+    out_inds=[0, 1], in_channels=[64, 128, 256, 512], out_channels=256)
+head_cfg = dict(in_channels=256)
+dataset_type = 'SIRSTDet2NoCoDataset'
+data_root = 'data/sirst/'
+img_norm_cfg = dict(
+    mean=[111.89, 111.89, 111.89], std=[27.62, 27.62, 27.62], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='Resize', img_scale=(1000, 600), keep_ratio=True),
+    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='NoCoTargets', mode='det2noco'),
+    dict(
+        type='Normalize',
+        mean=[111.89, 111.89, 111.89],
+        std=[27.62, 27.62, 27.62],
+        to_rgb=True),
+    dict(type='OSCARPad', size_divisor=32),
+    dict(type='OSCARFormatBundle'),
+    dict(
+        type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_noco_map'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1000, 600),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[111.89, 111.89, 111.89],
+                std=[27.62, 27.62, 27.62],
+                to_rgb=True),
+            dict(type='OSCARPad', size_divisor=32),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+data = dict(
+    samples_per_gpu=4,
+    workers_per_gpu=4,
+    train=dict(
+        type='RepeatDataset',
+        times=3,
+        dataset=dict(
+            type='SIRSTDet2NoCoDataset',
+            ann_file=['data/sirst/splits/trainval_full.txt'],
+            img_prefix=['data/sirst/'],
+            pipeline=[
+                dict(type='LoadImageFromFile'),
+                dict(type='LoadAnnotations', with_bbox=True),
+                dict(type='Resize', img_scale=(1000, 600), keep_ratio=True),
+                dict(type='RandomFlip', flip_ratio=0.5),
+                dict(type='NoCoTargets', mode='det2noco'),
+                dict(
+                    type='Normalize',
+                    mean=[111.89, 111.89, 111.89],
+                    std=[27.62, 27.62, 27.62],
+                    to_rgb=True),
+                dict(type='OSCARPad', size_divisor=32),
+                dict(type='OSCARFormatBundle'),
+                dict(
+                    type='Collect',
+                    keys=['img', 'gt_bboxes', 'gt_labels', 'gt_noco_map'])
+            ])),
+    val=dict(
+        type='SIRSTDet2NoCoDataset',
+        ann_file='data/sirst/splits/test_full.txt',
+        img_prefix='data/sirst/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1000, 600),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[111.89, 111.89, 111.89],
+                        std=[27.62, 27.62, 27.62],
+                        to_rgb=True),
+                    dict(type='OSCARPad', size_divisor=32),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]),
+    test=dict(
+        type='SIRSTDet2NoCoDataset',
+        ann_file='data/sirst/splits/test_full.txt',
+        img_prefix='data/sirst/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1000, 600),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[111.89, 111.89, 111.89],
+                        std=[27.62, 27.62, 27.62],
+                        to_rgb=True),
+                    dict(type='OSCARPad', size_divisor=32),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]))
+norm_cfg = dict(type='BN', requires_grad=True)
+model = dict(
+    type='OSCARNet',
+    backbone=dict(
+        type='FlexResNet',
+        depths=(2, 2, 2, 2),
+        block='basic',
+        stem_stride=2,
+        max_pooling=True,
+        in_channels=3,
+        deep_stem=True,
+        out_indices=(0, 1, 2, 3),
+        strides=(1, 2, 2, 2),
+        norm_cfg=dict(type='BN', requires_grad=True),
+        norm_eval=False,
+        style='pytorch',
+        contract_dilation=True,
+        init_cfg=dict(
+            type='Pretrained',
+            checkpoint='open-mmlab://detectron/resnet50_caffe')),
+    neck=dict(
+        type='FlexFPN',
+        out_inds=[0, 1],
+        in_channels=[64, 128, 256, 512],
+        out_channels=256,
+        num_outs=4),
+    bbox_head=dict(
+        type='OSCARNoCoHead',
+        num_classes=1,
+        stride_ratio=1.5,
+        in_channels=256,
+        regress_ranges=((-1, 100000000.0), ),
+        stacked_convs=4,
+        feat_channels=128,
+        strides=[4, 8],
+        loss_coarse_cls=dict(
+            type='FocalLoss',
+            use_sigmoid=True,
+            gamma=3.0,
+            alpha=0.25,
+            loss_weight=2.0),
+        loss_refine_cls=dict(
+            type='FocalLoss',
+            use_sigmoid=True,
+            gamma=3.0,
+            alpha=0.25,
+            loss_weight=2.0),
+        loss_refine_noco=dict(
+            type='RegQualityFocalLoss',
+            beta=2.0,
+            use_sigmoid=True,
+            loss_weight=1000.0),
+        loss_coarse_bbox=dict(type='DIoULoss', loss_weight=1.0),
+        loss_refine_bbox=dict(type='DIoULoss', loss_weight=1.0)),
+    train_cfg=dict(
+        assigner=dict(
+            type='MaxIoUAssigner',
+            pos_iou_thr=0.5,
+            neg_iou_thr=0.4,
+            min_pos_iou=0,
+            ignore_iof_thr=-1),
+        allowed_border=-1,
+        pos_weight=-1,
+        debug=False),
+    test_cfg=dict(
+        nms_pre=1000,
+        min_bbox_size=0,
+        score_thr=0.05,
+        nms=dict(type='nms', iou_threshold=0.5),
+        max_per_img=100))
+optimizer = dict(
+    type='AdamW',
+    lr=0.002,
+    betas=(0.9, 0.999),
+    weight_decay=0.05,
+    paramwise_cfg=dict(decay_rate=0.9, decay_type='stage_wise', num_layers=6))
+lr_config = dict(
+    policy='poly',
+    warmup='linear',
+    warmup_iters=1000,
+    warmup_ratio=1e-06,
+    power=1.0,
+    min_lr=0.0)
+optimizer_config = dict(type='Fp16OptimizerHook', loss_scale='dynamic')
+runner = dict(type='EpochBasedRunner', max_epochs=12)
+checkpoint_config = dict(interval=1)
+log_config = dict(interval=50, hooks=[dict(type='TextLoggerHook')])
+custom_hooks = [dict(type='NumClassCheckHook')]
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+opencv_num_threads = 0
+mp_start_method = 'fork'
+work_dir = 'work_dirs/oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco_gpu_0'
+auto_resume = False
+gpu_ids = [0]
+
+2022-12-01 14:57:23,518 - mmdet - INFO - Set random seed to 961443394, deterministic: False
+2022-12-01 14:57:24,324 - mmdet - INFO - initialize OSCARNoCoHead with init_cfg {'type': 'Normal', 'layer': 'Conv2d', 'std': 0.01}
+Name of parameter - Initialization information
+
+backbone.stem.0.weight - torch.Size([32, 3, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.stem.1.weight - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.stem.1.bias - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.stem.3.weight - torch.Size([32, 32, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.stem.4.weight - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.stem.4.bias - torch.Size([32]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.stem.6.weight - torch.Size([64, 32, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.stem.7.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.stem.7.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.0.downsample.0.weight - torch.Size([128, 64, 1, 1]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer2.0.downsample.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.0.downsample.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.0.downsample.0.weight - torch.Size([256, 128, 1, 1]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer3.0.downsample.1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.0.downsample.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.0.conv1.weight - torch.Size([512, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer4.0.bn1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.0.bn1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer4.0.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer4.0.bn2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer4.0.downsample.1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.0.downsample.1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.1.conv1.weight - torch.Size([512, 512, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer4.1.bn1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.1.bn1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer4.1.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in FlexResNet  
+
+backbone.layer4.1.bn2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.lateral_convs.0.conv.weight - torch.Size([256, 64, 1, 1]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.lateral_convs.0.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.lateral_convs.1.conv.weight - torch.Size([256, 128, 1, 1]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.lateral_convs.1.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.lateral_convs.2.conv.weight - torch.Size([256, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.lateral_convs.2.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.lateral_convs.3.conv.weight - torch.Size([256, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.lateral_convs.3.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.fpn_convs.0.conv.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.fpn_convs.0.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.fpn_convs.1.conv.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.fpn_convs.1.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.fpn_convs.2.conv.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.fpn_convs.2.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+neck.fpn_convs.3.conv.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in FlexFPN  
+
+neck.fpn_convs.3.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_cls_convs.0.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.0.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.1.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_cls_convs.1.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.1.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.2.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_cls_convs.2.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.2.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.3.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_cls_convs.3.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_cls_convs.3.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_cls_convs.0.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.0.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.1.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_cls_convs.1.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.1.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.2.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_cls_convs.2.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.2.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.3.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_cls_convs.3.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_cls_convs.3.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.0.conv.weight - torch.Size([128, 384, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_reg_convs.0.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.0.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.1.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_reg_convs.1.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.1.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.2.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_reg_convs.2.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.2.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.3.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_reg_convs.3.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_reg_convs.3.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_reg_convs.0.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.0.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.1.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_reg_convs.1.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.1.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.2.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_reg_convs.2.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.2.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.3.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_reg_convs.3.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_reg_convs.3.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_noco_convs.0.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.0.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.1.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_noco_convs.1.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.1.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.2.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_noco_convs.2.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.2.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.3.conv.weight - torch.Size([128, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_noco_convs.3.gn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.refine_noco_convs.3.gn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.coarse_conv_cls.weight - torch.Size([1, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_conv_cls.bias - torch.Size([1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_conv_reg.weight - torch.Size([4, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_conv_reg.bias - torch.Size([4]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_conv_mod.weight - torch.Size([1, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.coarse_conv_mod.bias - torch.Size([1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_cls.weight - torch.Size([1, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_cls.bias - torch.Size([1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_reg.weight - torch.Size([4, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_reg.bias - torch.Size([4]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_noco.weight - torch.Size([1, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_noco.bias - torch.Size([1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_mod.weight - torch.Size([1, 128, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.refine_conv_mod.bias - torch.Size([1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+bbox_head.scales.0.scale - torch.Size([]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+
+bbox_head.scales.1.scale - torch.Size([]): 
+The value is the same before and after calling `init_weights` of OSCARNet  
+2022-12-01 14:57:42,098 - mmdet - INFO - Automatic scaling of learning rate (LR) has been disabled.
+2022-12-01 14:57:47,498 - mmdet - INFO - Start running, host: root@interactive25681, work_dir: /opt/data/private/deepinfrared/work_dirs/oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco_gpu_0
+2022-12-01 14:57:47,499 - mmdet - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(ABOVE_NORMAL) Fp16OptimizerHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) Fp16OptimizerHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2022-12-01 14:57:47,500 - mmdet - INFO - workflow: [('train', 1)], max: 12 epochs
+2022-12-01 14:57:47,502 - mmdet - INFO - Checkpoints will be saved to /opt/data/private/deepinfrared/work_dirs/oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco_gpu_0 by HardDiskBackend.
+2022-12-01 14:58:09,287 - mmdet - INFO - Epoch [1][50/577]	lr: 9.800e-05, eta: 0:49:52, time: 0.435, data_time: 0.081, memory: 4204, loss_coarse_cls: 482.6573, loss_coarse_bbox: 0.9176, loss_refine_cls: 855.7181, loss_refine_bbox: 0.8585, loss_refine_noco: 44.8090, loss: 1384.9605
+2022-12-01 14:58:18,965 - mmdet - INFO - Epoch [1][100/577]	lr: 1.980e-04, eta: 0:35:45, time: 0.194, data_time: 0.011, memory: 4205, loss_coarse_cls: 9.5161, loss_coarse_bbox: 0.6700, loss_refine_cls: 6.2854, loss_refine_bbox: 0.6437, loss_refine_noco: 0.6286, loss: 17.7438
+2022-12-01 14:58:28,680 - mmdet - INFO - Epoch [1][150/577]	lr: 2.980e-04, eta: 0:30:58, time: 0.194, data_time: 0.012, memory: 4205, loss_coarse_cls: 1.9495, loss_coarse_bbox: 0.6354, loss_refine_cls: 1.7571, loss_refine_bbox: 0.6101, loss_refine_noco: 0.3532, loss: 5.3053
+2022-12-01 14:58:37,965 - mmdet - INFO - Epoch [1][200/577]	lr: 3.980e-04, eta: 0:28:15, time: 0.186, data_time: 0.011, memory: 4205, loss_coarse_cls: 1.3959, loss_coarse_bbox: 0.6476, loss_refine_cls: 1.3681, loss_refine_bbox: 0.6649, loss_refine_noco: 0.3089, loss: 4.3853
+2022-12-01 14:58:47,247 - mmdet - INFO - Epoch [1][250/577]	lr: 4.980e-04, eta: 0:26:34, time: 0.186, data_time: 0.010, memory: 4205, loss_coarse_cls: 1.1588, loss_coarse_bbox: 0.6242, loss_refine_cls: 1.1719, loss_refine_bbox: 0.6209, loss_refine_noco: 0.1979, loss: 3.7737
+2022-12-01 14:58:56,686 - mmdet - INFO - Epoch [1][300/577]	lr: 5.980e-04, eta: 0:25:27, time: 0.189, data_time: 0.011, memory: 4205, loss_coarse_cls: 1.1040, loss_coarse_bbox: 0.6235, loss_refine_cls: 1.2936, loss_refine_bbox: 0.6151, loss_refine_noco: 0.1540, loss: 3.7902
+2022-12-01 14:59:06,330 - mmdet - INFO - Epoch [1][350/577]	lr: 6.980e-04, eta: 0:24:40, time: 0.193, data_time: 0.011, memory: 4205, loss_coarse_cls: 1.0076, loss_coarse_bbox: 0.7145, loss_refine_cls: 0.9998, loss_refine_bbox: 0.7177, loss_refine_noco: 0.2271, loss: 3.6668
+2022-12-01 14:59:15,687 - mmdet - INFO - Epoch [1][400/577]	lr: 7.980e-04, eta: 0:23:57, time: 0.187, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.9432, loss_coarse_bbox: 0.6376, loss_refine_cls: 1.1577, loss_refine_bbox: 0.6141, loss_refine_noco: 0.1782, loss: 3.5308
+2022-12-01 14:59:24,778 - mmdet - INFO - Epoch [1][450/577]	lr: 8.980e-04, eta: 0:23:19, time: 0.182, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.8842, loss_coarse_bbox: 0.5264, loss_refine_cls: 1.2420, loss_refine_bbox: 0.5317, loss_refine_noco: 0.1357, loss: 3.3200
+2022-12-01 14:59:33,890 - mmdet - INFO - Epoch [1][500/577]	lr: 9.980e-04, eta: 0:22:46, time: 0.182, data_time: 0.011, memory: 4205, loss_coarse_cls: 1.1624, loss_coarse_bbox: 0.5966, loss_refine_cls: 1.1415, loss_refine_bbox: 0.6130, loss_refine_noco: 0.1861, loss: 3.6996
+2022-12-01 14:59:43,473 - mmdet - INFO - Epoch [1][550/577]	lr: 1.098e-03, eta: 0:22:23, time: 0.192, data_time: 0.011, memory: 4205, loss_coarse_cls: 1.1810, loss_coarse_bbox: 0.5836, loss_refine_cls: 1.5739, loss_refine_bbox: 0.5901, loss_refine_noco: 0.1758, loss: 4.1043
+2022-12-01 14:59:48,815 - mmdet - INFO - Saving checkpoint at 1 epochs
+2022-12-01 15:00:10,791 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.767  | 0.223 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.223 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:00:21,537 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.707  | 0.188 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.188 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:00:32,108 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.673  | 0.158 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.158 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:00:43,793 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.613  | 0.127 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.127 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:00:55,996 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.553  | 0.088 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.088 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:01:07,494 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.453  | 0.047 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.047 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:01:18,633 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.367  | 0.032 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.032 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:01:28,045 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.287  | 0.021 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.021 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:01:39,376 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25600 | 0.233  | 0.010 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.010 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:01:39,378 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:01:39,454 - mmdet - INFO - Epoch(val) [1][256]	NoCoAP10: 0.2230, NoCoAP20: 0.1880, NoCoAP30: 0.1580, NoCoAP40: 0.1270, NoCoAP50: 0.0880, NoCoAP60: 0.0470, NoCoAP70: 0.0320, NoCoAP80: 0.0210, NoCoAP90: 0.0100, mNoCoAP: 0.0992
+2022-12-01 15:01:52,490 - mmdet - INFO - Epoch [2][50/577]	lr: 1.148e-03, eta: 0:21:34, time: 0.259, data_time: 0.066, memory: 4205, loss_coarse_cls: 1.1967, loss_coarse_bbox: 0.5746, loss_refine_cls: 1.1720, loss_refine_bbox: 0.5933, loss_refine_noco: 0.2074, loss: 3.7440
+2022-12-01 15:02:02,037 - mmdet - INFO - Epoch [2][100/577]	lr: 1.239e-03, eta: 0:21:17, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.6025, loss_coarse_bbox: 0.5428, loss_refine_cls: 0.6611, loss_refine_bbox: 0.5441, loss_refine_noco: 0.0951, loss: 2.4456
+2022-12-01 15:02:11,582 - mmdet - INFO - Epoch [2][150/577]	lr: 1.331e-03, eta: 0:21:01, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.3890, loss_coarse_bbox: 0.5768, loss_refine_cls: 0.3959, loss_refine_bbox: 0.5828, loss_refine_noco: 0.0965, loss: 2.0410
+2022-12-01 15:02:21,382 - mmdet - INFO - Epoch [2][200/577]	lr: 1.423e-03, eta: 0:20:48, time: 0.196, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.5333, loss_coarse_bbox: 0.5878, loss_refine_cls: 0.5459, loss_refine_bbox: 0.6118, loss_refine_noco: 0.0544, loss: 2.3331
+2022-12-01 15:02:30,782 - mmdet - INFO - Epoch [2][250/577]	lr: 1.514e-03, eta: 0:20:32, time: 0.188, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2758, loss_coarse_bbox: 0.5371, loss_refine_cls: 0.3051, loss_refine_bbox: 0.5601, loss_refine_noco: 0.0548, loss: 1.7329
+2022-12-01 15:02:40,435 - mmdet - INFO - Epoch [2][300/577]	lr: 1.606e-03, eta: 0:20:19, time: 0.193, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2538, loss_coarse_bbox: 0.5282, loss_refine_cls: 0.2462, loss_refine_bbox: 0.5383, loss_refine_noco: 0.0889, loss: 1.6553
+2022-12-01 15:02:50,157 - mmdet - INFO - Epoch [2][350/577]	lr: 1.698e-03, eta: 0:20:06, time: 0.194, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.2979, loss_coarse_bbox: 0.5378, loss_refine_cls: 0.3136, loss_refine_bbox: 0.5537, loss_refine_noco: 0.1249, loss: 1.8278
+2022-12-01 15:02:59,490 - mmdet - INFO - Epoch [2][400/577]	lr: 1.789e-03, eta: 0:19:52, time: 0.187, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.3041, loss_coarse_bbox: 0.5110, loss_refine_cls: 0.3259, loss_refine_bbox: 0.5271, loss_refine_noco: 0.1667, loss: 1.8347
+2022-12-01 15:03:09,090 - mmdet - INFO - Epoch [2][450/577]	lr: 1.833e-03, eta: 0:19:39, time: 0.192, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.4625, loss_coarse_bbox: 0.5808, loss_refine_cls: 0.6263, loss_refine_bbox: 0.5879, loss_refine_noco: 0.0938, loss: 2.3513
+2022-12-01 15:03:18,432 - mmdet - INFO - Epoch [2][500/577]	lr: 1.833e-03, eta: 0:19:26, time: 0.187, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.2786, loss_coarse_bbox: 0.5518, loss_refine_cls: 0.2715, loss_refine_bbox: 0.5666, loss_refine_noco: 0.0619, loss: 1.7304
+2022-12-01 15:03:27,627 - mmdet - INFO - Epoch [2][550/577]	lr: 1.833e-03, eta: 0:19:12, time: 0.184, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2533, loss_coarse_bbox: 0.4834, loss_refine_cls: 0.2688, loss_refine_bbox: 0.4891, loss_refine_noco: 0.1167, loss: 1.6113
+2022-12-01 15:03:32,606 - mmdet - INFO - Saving checkpoint at 2 epochs
+2022-12-01 15:03:53,214 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.980  | 0.650 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.650 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:04:05,125 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.980  | 0.649 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.649 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:04:17,659 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.967  | 0.631 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.631 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:04:28,372 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.960  | 0.608 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.608 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:04:40,693 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.940  | 0.591 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.591 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:04:52,078 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.927  | 0.552 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.552 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:05:03,863 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.920  | 0.513 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.513 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:05:16,743 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.900  | 0.437 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.437 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:05:29,171 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 14046 | 0.840  | 0.323 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.323 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:05:29,175 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:05:29,258 - mmdet - INFO - Epoch(val) [2][256]	NoCoAP10: 0.6500, NoCoAP20: 0.6490, NoCoAP30: 0.6310, NoCoAP40: 0.6080, NoCoAP50: 0.5910, NoCoAP60: 0.5520, NoCoAP70: 0.5130, NoCoAP80: 0.4370, NoCoAP90: 0.3230, mNoCoAP: 0.5503
+2022-12-01 15:05:42,326 - mmdet - INFO - Epoch [3][50/577]	lr: 1.667e-03, eta: 0:18:46, time: 0.260, data_time: 0.067, memory: 4205, loss_coarse_cls: 0.2352, loss_coarse_bbox: 0.5040, loss_refine_cls: 0.2593, loss_refine_bbox: 0.5094, loss_refine_noco: 0.0526, loss: 1.5605
+2022-12-01 15:05:51,884 - mmdet - INFO - Epoch [3][100/577]	lr: 1.667e-03, eta: 0:18:34, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2246, loss_coarse_bbox: 0.4763, loss_refine_cls: 0.2630, loss_refine_bbox: 0.4946, loss_refine_noco: 0.0564, loss: 1.5148
+2022-12-01 15:06:01,073 - mmdet - INFO - Epoch [3][150/577]	lr: 1.667e-03, eta: 0:18:22, time: 0.184, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2249, loss_coarse_bbox: 0.4922, loss_refine_cls: 0.2287, loss_refine_bbox: 0.5345, loss_refine_noco: 0.1000, loss: 1.5804
+2022-12-01 15:06:10,371 - mmdet - INFO - Epoch [3][200/577]	lr: 1.667e-03, eta: 0:18:10, time: 0.186, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.2334, loss_coarse_bbox: 0.5015, loss_refine_cls: 0.2453, loss_refine_bbox: 0.5272, loss_refine_noco: 0.0908, loss: 1.5981
+2022-12-01 15:06:19,591 - mmdet - INFO - Epoch [3][250/577]	lr: 1.667e-03, eta: 0:17:58, time: 0.184, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2112, loss_coarse_bbox: 0.4021, loss_refine_cls: 0.2558, loss_refine_bbox: 0.4257, loss_refine_noco: 0.0484, loss: 1.3431
+2022-12-01 15:06:29,298 - mmdet - INFO - Epoch [3][300/577]	lr: 1.667e-03, eta: 0:17:48, time: 0.194, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1984, loss_coarse_bbox: 0.4619, loss_refine_cls: 0.2151, loss_refine_bbox: 0.4877, loss_refine_noco: 0.0593, loss: 1.4223
+2022-12-01 15:06:39,348 - mmdet - INFO - Epoch [3][350/577]	lr: 1.667e-03, eta: 0:17:39, time: 0.201, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.2374, loss_coarse_bbox: 0.4086, loss_refine_cls: 0.2833, loss_refine_bbox: 0.4381, loss_refine_noco: 0.1342, loss: 1.5015
+2022-12-01 15:06:49,142 - mmdet - INFO - Epoch [3][400/577]	lr: 1.667e-03, eta: 0:17:29, time: 0.196, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2160, loss_coarse_bbox: 0.4455, loss_refine_cls: 0.2183, loss_refine_bbox: 0.4561, loss_refine_noco: 0.1041, loss: 1.4401
+2022-12-01 15:06:58,894 - mmdet - INFO - Epoch [3][450/577]	lr: 1.667e-03, eta: 0:17:20, time: 0.195, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.2220, loss_coarse_bbox: 0.4372, loss_refine_cls: 0.2455, loss_refine_bbox: 0.4641, loss_refine_noco: 0.0572, loss: 1.4259
+2022-12-01 15:07:08,417 - mmdet - INFO - Epoch [3][500/577]	lr: 1.667e-03, eta: 0:17:09, time: 0.190, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1792, loss_coarse_bbox: 0.4446, loss_refine_cls: 0.1964, loss_refine_bbox: 0.4649, loss_refine_noco: 0.0594, loss: 1.3445
+2022-12-01 15:07:17,915 - mmdet - INFO - Epoch [3][550/577]	lr: 1.667e-03, eta: 0:16:58, time: 0.190, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2069, loss_coarse_bbox: 0.4543, loss_refine_cls: 0.2191, loss_refine_bbox: 0.4709, loss_refine_noco: 0.0320, loss: 1.3833
+2022-12-01 15:07:23,236 - mmdet - INFO - Saving checkpoint at 3 epochs
+2022-12-01 15:07:45,519 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.953  | 0.766 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.766 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:07:59,821 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.927  | 0.728 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.728 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:08:13,478 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.887  | 0.665 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.665 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:08:27,531 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.860  | 0.572 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.572 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:08:40,157 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.833  | 0.458 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.458 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:08:54,134 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.813  | 0.365 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.365 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:09:08,793 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.713  | 0.229 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.229 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:09:21,124 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.587  | 0.115 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.115 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:09:35,272 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 25589 | 0.393  | 0.016 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.016 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:09:35,275 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:09:35,310 - mmdet - INFO - Epoch(val) [3][256]	NoCoAP10: 0.7660, NoCoAP20: 0.7280, NoCoAP30: 0.6650, NoCoAP40: 0.5720, NoCoAP50: 0.4580, NoCoAP60: 0.3650, NoCoAP70: 0.2290, NoCoAP80: 0.1150, NoCoAP90: 0.0160, mNoCoAP: 0.4349
+2022-12-01 15:09:47,732 - mmdet - INFO - Epoch [4][50/577]	lr: 1.500e-03, eta: 0:16:36, time: 0.247, data_time: 0.066, memory: 4205, loss_coarse_cls: 0.3521, loss_coarse_bbox: 0.4059, loss_refine_cls: 0.3948, loss_refine_bbox: 0.4306, loss_refine_noco: 0.0663, loss: 1.6497
+2022-12-01 15:09:57,410 - mmdet - INFO - Epoch [4][100/577]	lr: 1.500e-03, eta: 0:16:26, time: 0.194, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2407, loss_coarse_bbox: 0.4222, loss_refine_cls: 0.2649, loss_refine_bbox: 0.4397, loss_refine_noco: 0.0344, loss: 1.4019
+2022-12-01 15:10:06,379 - mmdet - INFO - Epoch [4][150/577]	lr: 1.500e-03, eta: 0:16:14, time: 0.179, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1705, loss_coarse_bbox: 0.3981, loss_refine_cls: 0.1802, loss_refine_bbox: 0.4201, loss_refine_noco: 0.0361, loss: 1.2051
+2022-12-01 15:10:16,024 - mmdet - INFO - Epoch [4][200/577]	lr: 1.500e-03, eta: 0:16:05, time: 0.193, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1382, loss_coarse_bbox: 0.3983, loss_refine_cls: 0.1603, loss_refine_bbox: 0.4178, loss_refine_noco: 0.0254, loss: 1.1400
+2022-12-01 15:10:25,180 - mmdet - INFO - Epoch [4][250/577]	lr: 1.500e-03, eta: 0:15:54, time: 0.183, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1944, loss_coarse_bbox: 0.3813, loss_refine_cls: 0.1955, loss_refine_bbox: 0.4219, loss_refine_noco: 0.0787, loss: 1.2717
+2022-12-01 15:10:34,495 - mmdet - INFO - Epoch [4][300/577]	lr: 1.500e-03, eta: 0:15:43, time: 0.186, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1616, loss_coarse_bbox: 0.4051, loss_refine_cls: 0.1745, loss_refine_bbox: 0.4292, loss_refine_noco: 0.0624, loss: 1.2329
+2022-12-01 15:10:43,593 - mmdet - INFO - Epoch [4][350/577]	lr: 1.500e-03, eta: 0:15:32, time: 0.182, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1611, loss_coarse_bbox: 0.3575, loss_refine_cls: 0.1644, loss_refine_bbox: 0.3892, loss_refine_noco: 0.0485, loss: 1.1207
+2022-12-01 15:10:52,605 - mmdet - INFO - Epoch [4][400/577]	lr: 1.500e-03, eta: 0:15:21, time: 0.180, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1779, loss_coarse_bbox: 0.4128, loss_refine_cls: 0.1922, loss_refine_bbox: 0.4249, loss_refine_noco: 0.0593, loss: 1.2671
+2022-12-01 15:11:01,669 - mmdet - INFO - Epoch [4][450/577]	lr: 1.500e-03, eta: 0:15:10, time: 0.181, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1751, loss_coarse_bbox: 0.3810, loss_refine_cls: 0.1985, loss_refine_bbox: 0.4132, loss_refine_noco: 0.0520, loss: 1.2198
+2022-12-01 15:11:10,672 - mmdet - INFO - Epoch [4][500/577]	lr: 1.500e-03, eta: 0:15:00, time: 0.180, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.2575, loss_coarse_bbox: 0.4238, loss_refine_cls: 0.3273, loss_refine_bbox: 0.4440, loss_refine_noco: 0.1278, loss: 1.5804
+2022-12-01 15:11:20,605 - mmdet - INFO - Epoch [4][550/577]	lr: 1.500e-03, eta: 0:14:51, time: 0.199, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.2205, loss_coarse_bbox: 0.4265, loss_refine_cls: 0.2526, loss_refine_bbox: 0.4373, loss_refine_noco: 0.0854, loss: 1.4224
+2022-12-01 15:11:26,195 - mmdet - INFO - Saving checkpoint at 4 epochs
+2022-12-01 15:11:47,946 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.973  | 0.832 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.832 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:12:01,651 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.973  | 0.814 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.814 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:12:14,831 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.973  | 0.812 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.812 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:12:27,094 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.953  | 0.783 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.783 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:12:40,649 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.940  | 0.758 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.758 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:12:54,744 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.927  | 0.716 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.716 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:13:05,407 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.920  | 0.646 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.646 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:13:16,919 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.907  | 0.547 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.547 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:13:28,849 - mmdet - INFO - 
++-------+-----+-------+--------+-------+
+| class | gts | dets  | recall | ap    |
++-------+-----+-------+--------+-------+
+| 0     | 150 | 10508 | 0.853  | 0.387 |
++-------+-----+-------+--------+-------+
+| mAP   |     |       |        | 0.387 |
++-------+-----+-------+--------+-------+
+2022-12-01 15:13:28,852 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:13:28,937 - mmdet - INFO - Epoch(val) [4][256]	NoCoAP10: 0.8320, NoCoAP20: 0.8140, NoCoAP30: 0.8120, NoCoAP40: 0.7830, NoCoAP50: 0.7580, NoCoAP60: 0.7160, NoCoAP70: 0.6460, NoCoAP80: 0.5470, NoCoAP90: 0.3870, mNoCoAP: 0.6994
+2022-12-01 15:13:41,004 - mmdet - INFO - Epoch [5][50/577]	lr: 1.333e-03, eta: 0:14:31, time: 0.240, data_time: 0.065, memory: 4205, loss_coarse_cls: 0.1787, loss_coarse_bbox: 0.3366, loss_refine_cls: 0.1911, loss_refine_bbox: 0.3595, loss_refine_noco: 0.0438, loss: 1.1097
+2022-12-01 15:13:50,329 - mmdet - INFO - Epoch [5][100/577]	lr: 1.333e-03, eta: 0:14:21, time: 0.186, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2336, loss_coarse_bbox: 0.4020, loss_refine_cls: 0.2309, loss_refine_bbox: 0.4238, loss_refine_noco: 0.1108, loss: 1.4011
+2022-12-01 15:13:59,667 - mmdet - INFO - Epoch [5][150/577]	lr: 1.333e-03, eta: 0:14:11, time: 0.187, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.2265, loss_coarse_bbox: 0.4027, loss_refine_cls: 0.2442, loss_refine_bbox: 0.4428, loss_refine_noco: 0.0656, loss: 1.3818
+2022-12-01 15:14:09,333 - mmdet - INFO - Epoch [5][200/577]	lr: 1.333e-03, eta: 0:14:01, time: 0.193, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1638, loss_coarse_bbox: 0.4219, loss_refine_cls: 0.1838, loss_refine_bbox: 0.4540, loss_refine_noco: 0.0323, loss: 1.2557
+2022-12-01 15:14:18,856 - mmdet - INFO - Epoch [5][250/577]	lr: 1.333e-03, eta: 0:13:52, time: 0.190, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2093, loss_coarse_bbox: 0.3842, loss_refine_cls: 0.2185, loss_refine_bbox: 0.4106, loss_refine_noco: 0.0661, loss: 1.2886
+2022-12-01 15:14:28,289 - mmdet - INFO - Epoch [5][300/577]	lr: 1.333e-03, eta: 0:13:42, time: 0.189, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1604, loss_coarse_bbox: 0.3886, loss_refine_cls: 0.1797, loss_refine_bbox: 0.4159, loss_refine_noco: 0.0412, loss: 1.1859
+2022-12-01 15:14:37,231 - mmdet - INFO - Epoch [5][350/577]	lr: 1.333e-03, eta: 0:13:32, time: 0.179, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1618, loss_coarse_bbox: 0.3612, loss_refine_cls: 0.1717, loss_refine_bbox: 0.3929, loss_refine_noco: 0.0540, loss: 1.1415
+2022-12-01 15:14:46,633 - mmdet - INFO - Epoch [5][400/577]	lr: 1.333e-03, eta: 0:13:22, time: 0.188, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1523, loss_coarse_bbox: 0.3993, loss_refine_cls: 0.1753, loss_refine_bbox: 0.4181, loss_refine_noco: 0.0580, loss: 1.2031
+2022-12-01 15:14:55,964 - mmdet - INFO - Epoch [5][450/577]	lr: 1.333e-03, eta: 0:13:12, time: 0.187, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1696, loss_coarse_bbox: 0.3853, loss_refine_cls: 0.1934, loss_refine_bbox: 0.4037, loss_refine_noco: 0.0450, loss: 1.1970
+2022-12-01 15:15:05,555 - mmdet - INFO - Epoch [5][500/577]	lr: 1.333e-03, eta: 0:13:03, time: 0.192, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1415, loss_coarse_bbox: 0.3432, loss_refine_cls: 0.1680, loss_refine_bbox: 0.3725, loss_refine_noco: 0.0379, loss: 1.0631
+2022-12-01 15:15:15,045 - mmdet - INFO - Epoch [5][550/577]	lr: 1.333e-03, eta: 0:12:53, time: 0.190, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1317, loss_coarse_bbox: 0.3658, loss_refine_cls: 0.1682, loss_refine_bbox: 0.3833, loss_refine_noco: 0.0304, loss: 1.0794
+2022-12-01 15:15:20,239 - mmdet - INFO - Saving checkpoint at 5 epochs
+2022-12-01 15:15:42,650 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.960  | 0.882 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.882 |
++-------+-----+------+--------+-------+
+2022-12-01 15:15:55,172 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.953  | 0.876 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.876 |
++-------+-----+------+--------+-------+
+2022-12-01 15:16:08,951 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.940  | 0.852 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.852 |
++-------+-----+------+--------+-------+
+2022-12-01 15:16:20,808 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.933  | 0.820 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.820 |
++-------+-----+------+--------+-------+
+2022-12-01 15:16:33,112 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.913  | 0.791 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.791 |
++-------+-----+------+--------+-------+
+2022-12-01 15:16:45,671 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.887  | 0.737 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.737 |
++-------+-----+------+--------+-------+
+2022-12-01 15:16:59,726 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.880  | 0.714 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.714 |
++-------+-----+------+--------+-------+
+2022-12-01 15:17:12,816 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.840  | 0.559 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.559 |
++-------+-----+------+--------+-------+
+2022-12-01 15:17:26,569 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 6425 | 0.687  | 0.367 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.367 |
++-------+-----+------+--------+-------+
+2022-12-01 15:17:26,571 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:17:26,599 - mmdet - INFO - Epoch(val) [5][256]	NoCoAP10: 0.8820, NoCoAP20: 0.8760, NoCoAP30: 0.8520, NoCoAP40: 0.8200, NoCoAP50: 0.7910, NoCoAP60: 0.7370, NoCoAP70: 0.7140, NoCoAP80: 0.5590, NoCoAP90: 0.3670, mNoCoAP: 0.7332
+2022-12-01 15:17:39,487 - mmdet - INFO - Epoch [6][50/577]	lr: 1.167e-03, eta: 0:12:36, time: 0.256, data_time: 0.069, memory: 4205, loss_coarse_cls: 0.1295, loss_coarse_bbox: 0.3676, loss_refine_cls: 0.1433, loss_refine_bbox: 0.3943, loss_refine_noco: 0.0183, loss: 1.0531
+2022-12-01 15:17:48,654 - mmdet - INFO - Epoch [6][100/577]	lr: 1.167e-03, eta: 0:12:26, time: 0.183, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1862, loss_coarse_bbox: 0.3491, loss_refine_cls: 0.1766, loss_refine_bbox: 0.3594, loss_refine_noco: 0.0225, loss: 1.0937
+2022-12-01 15:17:58,925 - mmdet - INFO - Epoch [6][150/577]	lr: 1.167e-03, eta: 0:12:18, time: 0.205, data_time: 0.013, memory: 4205, loss_coarse_cls: 0.1566, loss_coarse_bbox: 0.3300, loss_refine_cls: 0.1862, loss_refine_bbox: 0.3600, loss_refine_noco: 0.0806, loss: 1.1135
+2022-12-01 15:18:08,458 - mmdet - INFO - Epoch [6][200/577]	lr: 1.167e-03, eta: 0:12:08, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1662, loss_coarse_bbox: 0.3538, loss_refine_cls: 0.1778, loss_refine_bbox: 0.3768, loss_refine_noco: 0.0570, loss: 1.1317
+2022-12-01 15:18:17,939 - mmdet - INFO - Epoch [6][250/577]	lr: 1.167e-03, eta: 0:11:59, time: 0.190, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.4932, loss_coarse_bbox: 0.3697, loss_refine_cls: 0.5967, loss_refine_bbox: 0.3922, loss_refine_noco: 0.0936, loss: 1.9453
+2022-12-01 15:18:27,501 - mmdet - INFO - Epoch [6][300/577]	lr: 1.167e-03, eta: 0:11:49, time: 0.191, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.4969, loss_coarse_bbox: 0.3718, loss_refine_cls: 0.8515, loss_refine_bbox: 0.3837, loss_refine_noco: 0.1054, loss: 2.2093
+2022-12-01 15:18:36,461 - mmdet - INFO - Epoch [6][350/577]	lr: 1.167e-03, eta: 0:11:39, time: 0.179, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.2686, loss_coarse_bbox: 0.3442, loss_refine_cls: 0.3443, loss_refine_bbox: 0.3639, loss_refine_noco: 0.0511, loss: 1.3721
+2022-12-01 15:18:45,648 - mmdet - INFO - Epoch [6][400/577]	lr: 1.167e-03, eta: 0:11:29, time: 0.184, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.4254, loss_coarse_bbox: 0.3539, loss_refine_cls: 0.5519, loss_refine_bbox: 0.3880, loss_refine_noco: 0.0413, loss: 1.7605
+2022-12-01 15:18:55,078 - mmdet - INFO - Epoch [6][450/577]	lr: 1.167e-03, eta: 0:11:20, time: 0.189, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1863, loss_coarse_bbox: 0.3704, loss_refine_cls: 0.2079, loss_refine_bbox: 0.3890, loss_refine_noco: 0.0454, loss: 1.1989
+2022-12-01 15:19:05,196 - mmdet - INFO - Epoch [6][500/577]	lr: 1.167e-03, eta: 0:11:11, time: 0.202, data_time: 0.012, memory: 4205, loss_coarse_cls: nan, loss_coarse_bbox: 0.3565, loss_refine_cls: 0.1871, loss_refine_bbox: 0.3705, loss_refine_noco: 0.0324, loss: nan
+2022-12-01 15:19:14,501 - mmdet - INFO - Epoch [6][550/577]	lr: 1.167e-03, eta: 0:11:01, time: 0.186, data_time: 0.011, memory: 4205, loss_coarse_cls: nan, loss_coarse_bbox: 0.3308, loss_refine_cls: 0.1617, loss_refine_bbox: 0.3553, loss_refine_noco: 0.0320, loss: nan
+2022-12-01 15:19:20,022 - mmdet - INFO - Saving checkpoint at 6 epochs
+2022-12-01 15:19:40,639 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.967  | 0.917 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.917 |
++-------+-----+------+--------+-------+
+2022-12-01 15:19:54,799 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.967  | 0.912 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.912 |
++-------+-----+------+--------+-------+
+2022-12-01 15:20:09,045 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.967  | 0.900 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.900 |
++-------+-----+------+--------+-------+
+2022-12-01 15:20:21,387 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.953  | 0.878 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.878 |
++-------+-----+------+--------+-------+
+2022-12-01 15:20:32,735 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.940  | 0.839 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.839 |
++-------+-----+------+--------+-------+
+2022-12-01 15:20:44,106 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.920  | 0.813 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.813 |
++-------+-----+------+--------+-------+
+2022-12-01 15:20:56,627 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.907  | 0.792 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.792 |
++-------+-----+------+--------+-------+
+2022-12-01 15:21:09,667 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.893  | 0.732 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.732 |
++-------+-----+------+--------+-------+
+2022-12-01 15:21:20,384 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5263 | 0.800  | 0.539 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.539 |
++-------+-----+------+--------+-------+
+2022-12-01 15:21:20,387 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:21:20,478 - mmdet - INFO - Epoch(val) [6][256]	NoCoAP10: 0.9170, NoCoAP20: 0.9120, NoCoAP30: 0.9000, NoCoAP40: 0.8780, NoCoAP50: 0.8390, NoCoAP60: 0.8130, NoCoAP70: 0.7920, NoCoAP80: 0.7320, NoCoAP90: 0.5390, mNoCoAP: 0.8135
+2022-12-01 15:21:32,871 - mmdet - INFO - Epoch [7][50/577]	lr: 1.000e-03, eta: 0:10:45, time: 0.245, data_time: 0.067, memory: 4205, loss_coarse_cls: 0.1067, loss_coarse_bbox: 0.2937, loss_refine_cls: 0.1300, loss_refine_bbox: 0.3109, loss_refine_noco: 0.0226, loss: 0.8640
+2022-12-01 15:21:42,119 - mmdet - INFO - Epoch [7][100/577]	lr: 1.000e-03, eta: 0:10:35, time: 0.185, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1525, loss_coarse_bbox: 0.3519, loss_refine_cls: 0.1625, loss_refine_bbox: 0.3718, loss_refine_noco: 0.0433, loss: 1.0820
+2022-12-01 15:21:51,911 - mmdet - INFO - Epoch [7][150/577]	lr: 1.000e-03, eta: 0:10:26, time: 0.196, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1586, loss_coarse_bbox: 0.3118, loss_refine_cls: 0.1731, loss_refine_bbox: 0.3283, loss_refine_noco: 0.0344, loss: 1.0062
+2022-12-01 15:22:01,098 - mmdet - INFO - Epoch [7][200/577]	lr: 1.000e-03, eta: 0:10:16, time: 0.184, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1769, loss_coarse_bbox: 0.3202, loss_refine_cls: 0.1921, loss_refine_bbox: 0.3475, loss_refine_noco: 0.0313, loss: 1.0680
+2022-12-01 15:22:10,672 - mmdet - INFO - Epoch [7][250/577]	lr: 1.000e-03, eta: 0:10:07, time: 0.191, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1886, loss_coarse_bbox: 0.3532, loss_refine_cls: 0.1877, loss_refine_bbox: 0.3685, loss_refine_noco: 0.0899, loss: 1.1879
+2022-12-01 15:22:20,201 - mmdet - INFO - Epoch [7][300/577]	lr: 1.000e-03, eta: 0:09:57, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1233, loss_coarse_bbox: 0.3138, loss_refine_cls: 0.1461, loss_refine_bbox: 0.3331, loss_refine_noco: 0.0313, loss: 0.9476
+2022-12-01 15:22:29,486 - mmdet - INFO - Epoch [7][350/577]	lr: 1.000e-03, eta: 0:09:48, time: 0.186, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1165, loss_coarse_bbox: 0.3305, loss_refine_cls: 0.1522, loss_refine_bbox: 0.3531, loss_refine_noco: 0.0309, loss: 0.9831
+2022-12-01 15:22:38,391 - mmdet - INFO - Epoch [7][400/577]	lr: 1.000e-03, eta: 0:09:38, time: 0.178, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1258, loss_coarse_bbox: 0.3030, loss_refine_cls: 0.1653, loss_refine_bbox: 0.3189, loss_refine_noco: 0.0240, loss: 0.9371
+2022-12-01 15:22:47,315 - mmdet - INFO - Epoch [7][450/577]	lr: 1.000e-03, eta: 0:09:28, time: 0.178, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1533, loss_coarse_bbox: 0.3175, loss_refine_cls: 0.2012, loss_refine_bbox: 0.3475, loss_refine_noco: 0.0778, loss: 1.0972
+2022-12-01 15:22:56,851 - mmdet - INFO - Epoch [7][500/577]	lr: 1.000e-03, eta: 0:09:19, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1918, loss_coarse_bbox: 0.3161, loss_refine_cls: 0.2054, loss_refine_bbox: 0.3325, loss_refine_noco: 0.0825, loss: 1.1283
+2022-12-01 15:23:06,119 - mmdet - INFO - Epoch [7][550/577]	lr: 1.000e-03, eta: 0:09:09, time: 0.185, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1565, loss_coarse_bbox: 0.3364, loss_refine_cls: 0.1867, loss_refine_bbox: 0.3551, loss_refine_noco: 0.0269, loss: 1.0616
+2022-12-01 15:23:11,473 - mmdet - INFO - Saving checkpoint at 7 epochs
+2022-12-01 15:23:32,134 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.973  | 0.922 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.922 |
++-------+-----+------+--------+-------+
+2022-12-01 15:23:46,097 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.973  | 0.922 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.922 |
++-------+-----+------+--------+-------+
+2022-12-01 15:23:59,630 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.967  | 0.900 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.900 |
++-------+-----+------+--------+-------+
+2022-12-01 15:24:12,331 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.960  | 0.882 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.882 |
++-------+-----+------+--------+-------+
+2022-12-01 15:24:24,778 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.947  | 0.841 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.841 |
++-------+-----+------+--------+-------+
+2022-12-01 15:24:37,905 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.913  | 0.802 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.802 |
++-------+-----+------+--------+-------+
+2022-12-01 15:24:51,801 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.893  | 0.743 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.743 |
++-------+-----+------+--------+-------+
+2022-12-01 15:25:05,421 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.880  | 0.592 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.592 |
++-------+-----+------+--------+-------+
+2022-12-01 15:25:19,278 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5123 | 0.773  | 0.365 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.365 |
++-------+-----+------+--------+-------+
+2022-12-01 15:25:19,282 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:25:19,322 - mmdet - INFO - Epoch(val) [7][256]	NoCoAP10: 0.9220, NoCoAP20: 0.9220, NoCoAP30: 0.9000, NoCoAP40: 0.8820, NoCoAP50: 0.8410, NoCoAP60: 0.8020, NoCoAP70: 0.7430, NoCoAP80: 0.5920, NoCoAP90: 0.3650, mNoCoAP: 0.7744
+2022-12-01 15:25:31,711 - mmdet - INFO - Epoch [8][50/577]	lr: 8.333e-04, eta: 0:08:53, time: 0.246, data_time: 0.067, memory: 4205, loss_coarse_cls: 0.0970, loss_coarse_bbox: 0.2966, loss_refine_cls: 0.1247, loss_refine_bbox: 0.3090, loss_refine_noco: 0.0327, loss: 0.8601
+2022-12-01 15:25:41,057 - mmdet - INFO - Epoch [8][100/577]	lr: 8.333e-04, eta: 0:08:44, time: 0.187, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1410, loss_coarse_bbox: 0.3102, loss_refine_cls: 0.1598, loss_refine_bbox: 0.3434, loss_refine_noco: 0.0491, loss: 1.0034
+2022-12-01 15:25:50,901 - mmdet - INFO - Epoch [8][150/577]	lr: 8.333e-04, eta: 0:08:34, time: 0.197, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.2501, loss_coarse_bbox: 0.2925, loss_refine_cls: 0.2445, loss_refine_bbox: 0.3240, loss_refine_noco: 0.0528, loss: 1.1640
+2022-12-01 15:26:00,508 - mmdet - INFO - Epoch [8][200/577]	lr: 8.333e-04, eta: 0:08:25, time: 0.192, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1768, loss_coarse_bbox: 0.3410, loss_refine_cls: 0.1990, loss_refine_bbox: 0.3503, loss_refine_noco: 0.0368, loss: 1.1039
+2022-12-01 15:26:10,332 - mmdet - INFO - Epoch [8][250/577]	lr: 8.333e-04, eta: 0:08:16, time: 0.196, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1353, loss_coarse_bbox: 0.2998, loss_refine_cls: 0.1677, loss_refine_bbox: 0.3236, loss_refine_noco: 0.0722, loss: 0.9987
+2022-12-01 15:26:19,741 - mmdet - INFO - Epoch [8][300/577]	lr: 8.333e-04, eta: 0:08:07, time: 0.188, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1181, loss_coarse_bbox: 0.3196, loss_refine_cls: 0.1377, loss_refine_bbox: 0.3401, loss_refine_noco: 0.0268, loss: 0.9423
+2022-12-01 15:26:29,211 - mmdet - INFO - Epoch [8][350/577]	lr: 8.333e-04, eta: 0:07:57, time: 0.189, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1445, loss_coarse_bbox: 0.3390, loss_refine_cls: 0.1860, loss_refine_bbox: 0.3583, loss_refine_noco: 0.0398, loss: 1.0676
+2022-12-01 15:26:38,604 - mmdet - INFO - Epoch [8][400/577]	lr: 8.333e-04, eta: 0:07:48, time: 0.188, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1624, loss_coarse_bbox: 0.2975, loss_refine_cls: 0.1699, loss_refine_bbox: 0.3170, loss_refine_noco: 0.0654, loss: 1.0122
+2022-12-01 15:26:48,444 - mmdet - INFO - Epoch [8][450/577]	lr: 8.333e-04, eta: 0:07:39, time: 0.197, data_time: 0.013, memory: 4205, loss_coarse_cls: 0.1135, loss_coarse_bbox: 0.2938, loss_refine_cls: 0.1441, loss_refine_bbox: 0.3234, loss_refine_noco: 0.0363, loss: 0.9111
+2022-12-01 15:26:58,010 - mmdet - INFO - Epoch [8][500/577]	lr: 8.333e-04, eta: 0:07:29, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1184, loss_coarse_bbox: 0.2981, loss_refine_cls: 0.1219, loss_refine_bbox: 0.3213, loss_refine_noco: 0.0280, loss: 0.8877
+2022-12-01 15:27:07,583 - mmdet - INFO - Epoch [8][550/577]	lr: 8.333e-04, eta: 0:07:20, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0947, loss_coarse_bbox: 0.2913, loss_refine_cls: 0.1112, loss_refine_bbox: 0.3259, loss_refine_noco: 0.0196, loss: 0.8427
+2022-12-01 15:27:13,023 - mmdet - INFO - Saving checkpoint at 8 epochs
+2022-12-01 15:27:34,039 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.973  | 0.927 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.927 |
++-------+-----+------+--------+-------+
+2022-12-01 15:27:47,445 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.973  | 0.927 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.927 |
++-------+-----+------+--------+-------+
+2022-12-01 15:28:01,194 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.967  | 0.906 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.906 |
++-------+-----+------+--------+-------+
+2022-12-01 15:28:11,889 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.940  | 0.875 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.875 |
++-------+-----+------+--------+-------+
+2022-12-01 15:28:25,628 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.933  | 0.836 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.836 |
++-------+-----+------+--------+-------+
+2022-12-01 15:28:39,540 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.913  | 0.785 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.785 |
++-------+-----+------+--------+-------+
+2022-12-01 15:28:51,108 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.900  | 0.659 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.659 |
++-------+-----+------+--------+-------+
+2022-12-01 15:29:01,350 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.813  | 0.456 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.456 |
++-------+-----+------+--------+-------+
+2022-12-01 15:29:12,596 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 3544 | 0.593  | 0.211 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.211 |
++-------+-----+------+--------+-------+
+2022-12-01 15:29:12,601 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:29:12,642 - mmdet - INFO - Epoch(val) [8][256]	NoCoAP10: 0.9270, NoCoAP20: 0.9270, NoCoAP30: 0.9060, NoCoAP40: 0.8750, NoCoAP50: 0.8360, NoCoAP60: 0.7850, NoCoAP70: 0.6590, NoCoAP80: 0.4560, NoCoAP90: 0.2110, mNoCoAP: 0.7314
+2022-12-01 15:29:25,946 - mmdet - INFO - Epoch [9][50/577]	lr: 6.667e-04, eta: 0:07:05, time: 0.265, data_time: 0.068, memory: 4205, loss_coarse_cls: 0.1102, loss_coarse_bbox: 0.2766, loss_refine_cls: 0.1150, loss_refine_bbox: 0.2875, loss_refine_noco: 0.0231, loss: 0.8125
+2022-12-01 15:29:36,025 - mmdet - INFO - Epoch [9][100/577]	lr: 6.667e-04, eta: 0:06:56, time: 0.202, data_time: 0.013, memory: 4205, loss_coarse_cls: 0.1072, loss_coarse_bbox: 0.2791, loss_refine_cls: 0.1652, loss_refine_bbox: 0.3089, loss_refine_noco: 0.0247, loss: 0.8851
+2022-12-01 15:29:45,588 - mmdet - INFO - Epoch [9][150/577]	lr: 6.667e-04, eta: 0:06:46, time: 0.191, data_time: 0.012, memory: 4205, loss_coarse_cls: nan, loss_coarse_bbox: 0.2816, loss_refine_cls: 0.3907, loss_refine_bbox: 0.3127, loss_refine_noco: 0.1002, loss: nan
+2022-12-01 15:29:55,078 - mmdet - INFO - Epoch [9][200/577]	lr: 6.667e-04, eta: 0:06:37, time: 0.190, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1585, loss_coarse_bbox: 0.3039, loss_refine_cls: 0.1993, loss_refine_bbox: 0.3241, loss_refine_noco: 0.0474, loss: 1.0331
+2022-12-01 15:30:04,924 - mmdet - INFO - Epoch [9][250/577]	lr: 6.667e-04, eta: 0:06:28, time: 0.197, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1800, loss_coarse_bbox: 0.2821, loss_refine_cls: 0.1987, loss_refine_bbox: 0.2936, loss_refine_noco: 0.0776, loss: 1.0320
+2022-12-01 15:30:14,007 - mmdet - INFO - Epoch [9][300/577]	lr: 6.667e-04, eta: 0:06:18, time: 0.182, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1918, loss_coarse_bbox: 0.3235, loss_refine_cls: 0.1965, loss_refine_bbox: 0.3482, loss_refine_noco: 0.0848, loss: 1.1448
+2022-12-01 15:30:23,608 - mmdet - INFO - Epoch [9][350/577]	lr: 6.667e-04, eta: 0:06:09, time: 0.192, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0932, loss_coarse_bbox: 0.2915, loss_refine_cls: 0.1286, loss_refine_bbox: 0.3291, loss_refine_noco: 0.0328, loss: 0.8751
+2022-12-01 15:30:33,362 - mmdet - INFO - Epoch [9][400/577]	lr: 6.667e-04, eta: 0:05:59, time: 0.195, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0975, loss_coarse_bbox: 0.2331, loss_refine_cls: 0.1269, loss_refine_bbox: 0.2669, loss_refine_noco: 0.0177, loss: 0.7421
+2022-12-01 15:30:43,604 - mmdet - INFO - Epoch [9][450/577]	lr: 6.667e-04, eta: 0:05:50, time: 0.205, data_time: 0.013, memory: 4205, loss_coarse_cls: 0.1034, loss_coarse_bbox: 0.2589, loss_refine_cls: 0.1385, loss_refine_bbox: 0.2813, loss_refine_noco: 0.0206, loss: 0.8027
+2022-12-01 15:30:53,704 - mmdet - INFO - Epoch [9][500/577]	lr: 6.667e-04, eta: 0:05:41, time: 0.202, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1217, loss_coarse_bbox: 0.3265, loss_refine_cls: 0.1391, loss_refine_bbox: 0.3552, loss_refine_noco: 0.0309, loss: 0.9734
+2022-12-01 15:31:03,448 - mmdet - INFO - Epoch [9][550/577]	lr: 6.667e-04, eta: 0:05:32, time: 0.195, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1032, loss_coarse_bbox: 0.3031, loss_refine_cls: 0.1207, loss_refine_bbox: 0.3129, loss_refine_noco: 0.0207, loss: 0.8606
+2022-12-01 15:31:08,685 - mmdet - INFO - Saving checkpoint at 9 epochs
+2022-12-01 15:31:30,501 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.980  | 0.938 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.938 |
++-------+-----+------+--------+-------+
+2022-12-01 15:31:44,033 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.980  | 0.934 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.934 |
++-------+-----+------+--------+-------+
+2022-12-01 15:31:57,927 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.980  | 0.933 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.933 |
++-------+-----+------+--------+-------+
+2022-12-01 15:32:10,422 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.967  | 0.904 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.904 |
++-------+-----+------+--------+-------+
+2022-12-01 15:32:24,053 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.953  | 0.888 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.888 |
++-------+-----+------+--------+-------+
+2022-12-01 15:32:38,468 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.933  | 0.862 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.862 |
++-------+-----+------+--------+-------+
+2022-12-01 15:32:50,739 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.927  | 0.823 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.823 |
++-------+-----+------+--------+-------+
+2022-12-01 15:33:05,036 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.907  | 0.769 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.769 |
++-------+-----+------+--------+-------+
+2022-12-01 15:33:19,043 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 5086 | 0.833  | 0.602 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.602 |
++-------+-----+------+--------+-------+
+2022-12-01 15:33:19,046 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:33:19,123 - mmdet - INFO - Epoch(val) [9][256]	NoCoAP10: 0.9380, NoCoAP20: 0.9340, NoCoAP30: 0.9330, NoCoAP40: 0.9040, NoCoAP50: 0.8880, NoCoAP60: 0.8620, NoCoAP70: 0.8230, NoCoAP80: 0.7690, NoCoAP90: 0.6020, mNoCoAP: 0.8502
+2022-12-01 15:33:31,638 - mmdet - INFO - Epoch [10][50/577]	lr: 5.000e-04, eta: 0:05:16, time: 0.249, data_time: 0.066, memory: 4205, loss_coarse_cls: 0.1228, loss_coarse_bbox: 0.2467, loss_refine_cls: 0.1406, loss_refine_bbox: 0.2635, loss_refine_noco: 0.0650, loss: 0.8387
+2022-12-01 15:33:41,266 - mmdet - INFO - Epoch [10][100/577]	lr: 5.000e-04, eta: 0:05:07, time: 0.193, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0875, loss_coarse_bbox: 0.2446, loss_refine_cls: 0.1219, loss_refine_bbox: 0.2625, loss_refine_noco: 0.0201, loss: 0.7366
+2022-12-01 15:33:50,765 - mmdet - INFO - Epoch [10][150/577]	lr: 5.000e-04, eta: 0:04:58, time: 0.190, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0971, loss_coarse_bbox: 0.2472, loss_refine_cls: 0.1135, loss_refine_bbox: 0.2532, loss_refine_noco: 0.0254, loss: 0.7363
+2022-12-01 15:34:00,336 - mmdet - INFO - Epoch [10][200/577]	lr: 5.000e-04, eta: 0:04:48, time: 0.191, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1015, loss_coarse_bbox: 0.2548, loss_refine_cls: 0.1156, loss_refine_bbox: 0.2856, loss_refine_noco: 0.0371, loss: 0.7946
+2022-12-01 15:34:09,923 - mmdet - INFO - Epoch [10][250/577]	lr: 5.000e-04, eta: 0:04:39, time: 0.192, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0829, loss_coarse_bbox: 0.2496, loss_refine_cls: 0.1086, loss_refine_bbox: 0.2740, loss_refine_noco: 0.0204, loss: 0.7354
+2022-12-01 15:34:18,908 - mmdet - INFO - Epoch [10][300/577]	lr: 5.000e-04, eta: 0:04:29, time: 0.180, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1085, loss_coarse_bbox: 0.2631, loss_refine_cls: 0.1101, loss_refine_bbox: 0.2950, loss_refine_noco: 0.0201, loss: 0.7967
+2022-12-01 15:34:27,925 - mmdet - INFO - Epoch [10][350/577]	lr: 5.000e-04, eta: 0:04:20, time: 0.180, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0992, loss_coarse_bbox: 0.2726, loss_refine_cls: 0.1277, loss_refine_bbox: 0.2874, loss_refine_noco: 0.0649, loss: 0.8518
+2022-12-01 15:34:37,185 - mmdet - INFO - Epoch [10][400/577]	lr: 5.000e-04, eta: 0:04:10, time: 0.185, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1057, loss_coarse_bbox: 0.2440, loss_refine_cls: 0.1285, loss_refine_bbox: 0.2583, loss_refine_noco: 0.0409, loss: 0.7774
+2022-12-01 15:34:46,535 - mmdet - INFO - Epoch [10][450/577]	lr: 5.000e-04, eta: 0:04:01, time: 0.187, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1385, loss_coarse_bbox: 0.2632, loss_refine_cls: 0.1569, loss_refine_bbox: 0.2887, loss_refine_noco: 0.0543, loss: 0.9017
+2022-12-01 15:34:56,399 - mmdet - INFO - Epoch [10][500/577]	lr: 5.000e-04, eta: 0:03:52, time: 0.197, data_time: 0.013, memory: 4205, loss_coarse_cls: 0.1812, loss_coarse_bbox: 0.2898, loss_refine_cls: 0.2262, loss_refine_bbox: 0.3194, loss_refine_noco: 0.1636, loss: 1.1801
+2022-12-01 15:35:05,693 - mmdet - INFO - Epoch [10][550/577]	lr: 5.000e-04, eta: 0:03:42, time: 0.186, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1417, loss_coarse_bbox: 0.3060, loss_refine_cls: 0.1886, loss_refine_bbox: 0.3251, loss_refine_noco: 0.0362, loss: 0.9977
+2022-12-01 15:35:10,646 - mmdet - INFO - Saving checkpoint at 10 epochs
+2022-12-01 15:35:32,019 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.960  | 0.927 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.927 |
++-------+-----+------+--------+-------+
+2022-12-01 15:35:45,386 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.960  | 0.922 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.922 |
++-------+-----+------+--------+-------+
+2022-12-01 15:35:55,879 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.947  | 0.907 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.907 |
++-------+-----+------+--------+-------+
+2022-12-01 15:36:09,845 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.933  | 0.872 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.872 |
++-------+-----+------+--------+-------+
+2022-12-01 15:36:23,493 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.927  | 0.856 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.856 |
++-------+-----+------+--------+-------+
+2022-12-01 15:36:36,807 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.927  | 0.825 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.825 |
++-------+-----+------+--------+-------+
+2022-12-01 15:36:48,052 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.920  | 0.720 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.720 |
++-------+-----+------+--------+-------+
+2022-12-01 15:37:02,181 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.880  | 0.640 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.640 |
++-------+-----+------+--------+-------+
+2022-12-01 15:37:13,357 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2725 | 0.740  | 0.421 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.421 |
++-------+-----+------+--------+-------+
+2022-12-01 15:37:13,360 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:37:13,387 - mmdet - INFO - Epoch(val) [10][256]	NoCoAP10: 0.9270, NoCoAP20: 0.9220, NoCoAP30: 0.9070, NoCoAP40: 0.8720, NoCoAP50: 0.8560, NoCoAP60: 0.8250, NoCoAP70: 0.7200, NoCoAP80: 0.6400, NoCoAP90: 0.4210, mNoCoAP: 0.7878
+2022-12-01 15:37:25,687 - mmdet - INFO - Epoch [11][50/577]	lr: 3.333e-04, eta: 0:03:27, time: 0.244, data_time: 0.065, memory: 4205, loss_coarse_cls: 0.1071, loss_coarse_bbox: 0.2761, loss_refine_cls: 0.1306, loss_refine_bbox: 0.2970, loss_refine_noco: 0.0207, loss: 0.8314
+2022-12-01 15:37:35,405 - mmdet - INFO - Epoch [11][100/577]	lr: 3.333e-04, eta: 0:03:18, time: 0.194, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.1047, loss_coarse_bbox: 0.2399, loss_refine_cls: 0.1222, loss_refine_bbox: 0.2616, loss_refine_noco: 0.0305, loss: 0.7589
+2022-12-01 15:37:44,713 - mmdet - INFO - Epoch [11][150/577]	lr: 3.333e-04, eta: 0:03:08, time: 0.186, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0888, loss_coarse_bbox: 0.2430, loss_refine_cls: 0.1043, loss_refine_bbox: 0.2523, loss_refine_noco: 0.0249, loss: 0.7133
+2022-12-01 15:37:54,475 - mmdet - INFO - Epoch [11][200/577]	lr: 3.333e-04, eta: 0:02:59, time: 0.195, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0807, loss_coarse_bbox: 0.2570, loss_refine_cls: 0.1059, loss_refine_bbox: 0.2730, loss_refine_noco: 0.0196, loss: 0.7363
+2022-12-01 15:38:03,558 - mmdet - INFO - Epoch [11][250/577]	lr: 3.333e-04, eta: 0:02:50, time: 0.182, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0966, loss_coarse_bbox: 0.2624, loss_refine_cls: 0.1117, loss_refine_bbox: 0.2797, loss_refine_noco: 0.0183, loss: 0.7686
+2022-12-01 15:38:12,879 - mmdet - INFO - Epoch [11][300/577]	lr: 3.333e-04, eta: 0:02:40, time: 0.186, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.1215, loss_coarse_bbox: 0.2659, loss_refine_cls: 0.1602, loss_refine_bbox: 0.2798, loss_refine_noco: 0.0760, loss: 0.9033
+2022-12-01 15:38:22,060 - mmdet - INFO - Epoch [11][350/577]	lr: 3.333e-04, eta: 0:02:31, time: 0.184, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0925, loss_coarse_bbox: 0.2503, loss_refine_cls: 0.1191, loss_refine_bbox: 0.2683, loss_refine_noco: 0.0485, loss: 0.7788
+2022-12-01 15:38:31,515 - mmdet - INFO - Epoch [11][400/577]	lr: 3.333e-04, eta: 0:02:21, time: 0.189, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0765, loss_coarse_bbox: 0.2517, loss_refine_cls: 0.1067, loss_refine_bbox: 0.2717, loss_refine_noco: 0.0221, loss: 0.7288
+2022-12-01 15:38:41,036 - mmdet - INFO - Epoch [11][450/577]	lr: 3.333e-04, eta: 0:02:12, time: 0.190, data_time: 0.013, memory: 4205, loss_coarse_cls: 0.0832, loss_coarse_bbox: 0.2448, loss_refine_cls: 0.0999, loss_refine_bbox: 0.2623, loss_refine_noco: 0.0208, loss: 0.7109
+2022-12-01 15:38:50,400 - mmdet - INFO - Epoch [11][500/577]	lr: 3.333e-04, eta: 0:02:03, time: 0.187, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0919, loss_coarse_bbox: 0.2476, loss_refine_cls: 0.1081, loss_refine_bbox: 0.2715, loss_refine_noco: 0.0192, loss: 0.7382
+2022-12-01 15:38:59,645 - mmdet - INFO - Epoch [11][550/577]	lr: 3.333e-04, eta: 0:01:53, time: 0.185, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0843, loss_coarse_bbox: 0.2527, loss_refine_cls: 0.1019, loss_refine_bbox: 0.2758, loss_refine_noco: 0.0181, loss: 0.7327
+2022-12-01 15:39:04,700 - mmdet - INFO - Saving checkpoint at 11 epochs
+2022-12-01 15:39:24,138 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.967  | 0.938 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.938 |
++-------+-----+------+--------+-------+
+2022-12-01 15:39:37,981 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.967  | 0.938 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.938 |
++-------+-----+------+--------+-------+
+2022-12-01 15:39:50,490 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.967  | 0.910 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.910 |
++-------+-----+------+--------+-------+
+2022-12-01 15:40:02,769 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.953  | 0.897 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.897 |
++-------+-----+------+--------+-------+
+2022-12-01 15:40:16,458 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.933  | 0.866 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.866 |
++-------+-----+------+--------+-------+
+2022-12-01 15:40:27,095 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.893  | 0.802 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.802 |
++-------+-----+------+--------+-------+
+2022-12-01 15:40:41,517 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.880  | 0.735 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.735 |
++-------+-----+------+--------+-------+
+2022-12-01 15:40:54,617 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.827  | 0.600 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.600 |
++-------+-----+------+--------+-------+
+2022-12-01 15:41:03,101 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2002 | 0.720  | 0.405 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.405 |
++-------+-----+------+--------+-------+
+2022-12-01 15:41:03,104 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:41:03,198 - mmdet - INFO - Epoch(val) [11][256]	NoCoAP10: 0.9380, NoCoAP20: 0.9380, NoCoAP30: 0.9100, NoCoAP40: 0.8970, NoCoAP50: 0.8660, NoCoAP60: 0.8020, NoCoAP70: 0.7350, NoCoAP80: 0.6000, NoCoAP90: 0.4050, mNoCoAP: 0.7879
+2022-12-01 15:41:16,582 - mmdet - INFO - Epoch [12][50/577]	lr: 1.667e-04, eta: 0:01:39, time: 0.266, data_time: 0.068, memory: 4205, loss_coarse_cls: 0.0729, loss_coarse_bbox: 0.2277, loss_refine_cls: 0.0981, loss_refine_bbox: 0.2551, loss_refine_noco: 0.0202, loss: 0.6739
+2022-12-01 15:41:26,541 - mmdet - INFO - Epoch [12][100/577]	lr: 1.667e-04, eta: 0:01:29, time: 0.199, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0807, loss_coarse_bbox: 0.1932, loss_refine_cls: 0.0988, loss_refine_bbox: 0.2085, loss_refine_noco: 0.0173, loss: 0.5985
+2022-12-01 15:41:36,749 - mmdet - INFO - Epoch [12][150/577]	lr: 1.667e-04, eta: 0:01:20, time: 0.204, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0964, loss_coarse_bbox: 0.2176, loss_refine_cls: 0.1218, loss_refine_bbox: 0.2325, loss_refine_noco: 0.0460, loss: 0.7142
+2022-12-01 15:41:47,042 - mmdet - INFO - Epoch [12][200/577]	lr: 1.667e-04, eta: 0:01:10, time: 0.206, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0961, loss_coarse_bbox: 0.2794, loss_refine_cls: 0.1065, loss_refine_bbox: 0.3051, loss_refine_noco: 0.0198, loss: 0.8069
+2022-12-01 15:41:57,117 - mmdet - INFO - Epoch [12][250/577]	lr: 1.667e-04, eta: 0:01:01, time: 0.201, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0651, loss_coarse_bbox: 0.2143, loss_refine_cls: 0.0964, loss_refine_bbox: 0.2370, loss_refine_noco: 0.0118, loss: 0.6245
+2022-12-01 15:42:07,201 - mmdet - INFO - Epoch [12][300/577]	lr: 1.667e-04, eta: 0:00:52, time: 0.202, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0917, loss_coarse_bbox: 0.2316, loss_refine_cls: 0.1103, loss_refine_bbox: 0.2470, loss_refine_noco: 0.0487, loss: 0.7293
+2022-12-01 15:42:17,507 - mmdet - INFO - Epoch [12][350/577]	lr: 1.667e-04, eta: 0:00:42, time: 0.206, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0714, loss_coarse_bbox: 0.2480, loss_refine_cls: 0.0992, loss_refine_bbox: 0.2634, loss_refine_noco: 0.0191, loss: 0.7011
+2022-12-01 15:42:27,744 - mmdet - INFO - Epoch [12][400/577]	lr: 1.667e-04, eta: 0:00:33, time: 0.205, data_time: 0.012, memory: 4205, loss_coarse_cls: 0.0773, loss_coarse_bbox: 0.2175, loss_refine_cls: 0.0977, loss_refine_bbox: 0.2424, loss_refine_noco: 0.0176, loss: 0.6524
+2022-12-01 15:42:37,716 - mmdet - INFO - Epoch [12][450/577]	lr: 1.667e-04, eta: 0:00:23, time: 0.199, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.0666, loss_coarse_bbox: 0.2028, loss_refine_cls: 0.0854, loss_refine_bbox: 0.2193, loss_refine_noco: 0.0146, loss: 0.5888
+2022-12-01 15:42:47,588 - mmdet - INFO - Epoch [12][500/577]	lr: 1.667e-04, eta: 0:00:14, time: 0.197, data_time: 0.011, memory: 4205, loss_coarse_cls: 0.1071, loss_coarse_bbox: 0.2464, loss_refine_cls: 0.1360, loss_refine_bbox: 0.2662, loss_refine_noco: 0.0585, loss: 0.8142
+2022-12-01 15:42:57,164 - mmdet - INFO - Epoch [12][550/577]	lr: 1.667e-04, eta: 0:00:05, time: 0.191, data_time: 0.010, memory: 4205, loss_coarse_cls: 0.0831, loss_coarse_bbox: 0.2257, loss_refine_cls: 0.0933, loss_refine_bbox: 0.2345, loss_refine_noco: 0.0138, loss: 0.6504
+2022-12-01 15:43:02,504 - mmdet - INFO - Saving checkpoint at 12 epochs
+2022-12-01 15:43:18,560 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.967  | 0.941 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.941 |
++-------+-----+------+--------+-------+
+2022-12-01 15:43:30,627 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.967  | 0.941 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.941 |
++-------+-----+------+--------+-------+
+2022-12-01 15:43:39,133 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.967  | 0.929 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.929 |
++-------+-----+------+--------+-------+
+2022-12-01 15:43:47,168 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.953  | 0.915 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.915 |
++-------+-----+------+--------+-------+
+2022-12-01 15:43:50,380 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.940  | 0.881 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.881 |
++-------+-----+------+--------+-------+
+2022-12-01 15:43:53,621 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.920  | 0.857 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.857 |
++-------+-----+------+--------+-------+
+2022-12-01 15:43:56,930 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.913  | 0.831 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.831 |
++-------+-----+------+--------+-------+
+2022-12-01 15:43:59,669 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.873  | 0.718 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.718 |
++-------+-----+------+--------+-------+
+2022-12-01 15:44:02,981 - mmdet - INFO - 
++-------+-----+------+--------+-------+
+| class | gts | dets | recall | ap    |
++-------+-----+------+--------+-------+
+| 0     | 150 | 2589 | 0.753  | 0.540 |
++-------+-----+------+--------+-------+
+| mAP   |     |      |        | 0.540 |
++-------+-----+------+--------+-------+
+2022-12-01 15:44:02,985 - mmdet - INFO - Exp name: oscar_w_noco_head_r18_caffe_fpn_p2_gn-head_1x_sirst_det2noco.py
+2022-12-01 15:44:02,993 - mmdet - INFO - Epoch(val) [12][256]	NoCoAP10: 0.9410, NoCoAP20: 0.9410, NoCoAP30: 0.9290, NoCoAP40: 0.9150, NoCoAP50: 0.8810, NoCoAP60: 0.8570, NoCoAP70: 0.8310, NoCoAP80: 0.7180, NoCoAP90: 0.5400, mNoCoAP: 0.8391
